@@ -1,7 +1,10 @@
 @(message: String)
 
-@main("Welcome to Play") {
-
-    @play20.welcome(message)
-
+@main("Hello") {
+<script ><!--
+  if(document.URL.match(/#_=_/))
+    location.href='/';
+// --></script>
+  <h1>Hello</h1>
+  <a href="/signin">login</a>
 }
