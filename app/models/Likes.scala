@@ -4,6 +4,7 @@ import java.util.{Date}
 
 import play.api.db._
 import play.api.Play.current
+import scala.language.postfixOps
 
 import anorm._
 import anorm.SqlParser._
@@ -21,6 +22,17 @@ object Likes {
     get[String]("likes.url") ~
     get[Option[Date]]("likes.create_date") map {
       case active ~ user_id ~ ad_id ~ url ~ create_date => Likes(active, user_id, ad_id, url, create_date)
+    }
+  }
+
+  /**
+   * Retrieve a Likes from id.
+   */
+  def findById(id: Long): Option[Likes] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from likes where id = {id}").on(
+        'id -> id
+      ).as(Likes.simple.singleOpt)
     }
   }
 
@@ -50,6 +62,7 @@ object Likes {
       ).on(
         'active -> likes.active,
         'user_id -> likes.user_id,
+        'ad_id -> likes.ad_id,
         'url -> likes.url,
         'create_date -> likes.create_date
       ).executeUpdate()

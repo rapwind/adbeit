@@ -4,6 +4,7 @@ import java.util.{Date}
 
 import play.api.db._
 import play.api.Play.current
+import scala.language.postfixOps
 
 import anorm._
 import anorm.SqlParser._
@@ -21,6 +22,17 @@ object Twitter {
     get[String]("twitter.accesstoken") ~
     get[Option[Date]]("twitter.expiration_date") map {
       case id ~ active ~ user_id ~ accesstoken ~ expiration_date => Twitter(id, active, user_id, accesstoken, expiration_date)
+    }
+  }
+
+  /**
+   * Retrieve a Twitter from id.
+   */
+  def findById(id: Long): Option[Twitter] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from twitter where id = {id}").on(
+        'id -> id
+      ).as(Twitter.simple.singleOpt)
     }
   }
 

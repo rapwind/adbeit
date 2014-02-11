@@ -4,6 +4,7 @@ import java.util.{Date}
 
 import play.api.db._
 import play.api.Play.current
+import scala.language.postfixOps
 
 import anorm._
 import anorm.SqlParser._
@@ -22,6 +23,17 @@ object Company {
     get[Option[Date]]("company.create_date") ~
     get[Option[Date]]("company.modified_date") map {
       case active ~ name ~ address ~ url ~ create_date ~ modified_date => Company(active, name, address, url, create_date, modified_date)
+    }
+  }
+
+  /**
+   * Retrieve a Company from id.
+   */
+  def findById(id: Long): Option[Company] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from company where id = {id}").on(
+        'id -> id
+      ).as(Company.simple.singleOpt)
     }
   }
 

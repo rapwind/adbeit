@@ -4,6 +4,7 @@ import java.util.{Date}
 
 import play.api.db._
 import play.api.Play.current
+import scala.language.postfixOps
 
 import anorm._
 import anorm.SqlParser._
@@ -12,9 +13,6 @@ import utils.CryptUtil
 import java.sql.Timestamp
 
 case class Advertisement(active: Int, company_id: Option[Long], name: String, description: String, url: String, point: Int, create_date: Option[Date], modified_date: Option[Date], expiration_date: Option[Date])
-
-case class UserAdvertisement(u_id: Option[Long], ad_id: Option[Long])
-
 
 object Advertisement {
   val simple = {
@@ -32,11 +30,34 @@ object Advertisement {
   }
 
   /**
+   * Retrieve a Advertisement from id.
+   */
+  def findById(id: Long): Option[Advertisement] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from advertisement where id = {id}").on(
+        'id -> id
+      ).as(Advertisement.simple.singleOpt)
+    }
+  }
+
+  /**
    * Retrieve all users.
    */
   def findAll: Seq[Advertisement] = {
     DB.withConnection { implicit connection =>
       SQL("select * from advertisement").as(Advertisement.simple *)
+    }
+  }
+
+  /**
+   * Add a advertisement to the user.
+   */
+  def addRelation(u_id: Long, ad_id: Long) {
+    DB.withConnection { implicit connection =>
+      SQL("insert into user_advertisement values({u_id}, {ad_id})").on(
+        'u_id -> u_id,
+        'ad_id -> ad_id
+      ).executeUpdate()
     }
   }
 
@@ -69,31 +90,6 @@ object Advertisement {
       advertisement
     }
   }
-
-}
-
-
-object UserAdvertisement {
-
-  val simple = {
-    get[Option[Long]]("user_advertisement.u_id") ~
-    get[Option[Long]]("user_advertisement.ad_id") map {
-      case u_id ~ ad_id => UserAdvertisement(u_id, ad_id)
-    }
-  }
-
-  /**
-   * Relate a ticket to the user team.
-   */
-  def relateAdvertisement(u_id: Int, ad_id: Int) {
-    DB.withConnection { implicit connection =>
-      SQL("insert into user_advertisement values({u_id}, {ad_id})").on(
-        'u_id -> u_id,
-        'ad_id -> ad_id
-      ).executeUpdate()
-    }
-  }
-
 
 }
 

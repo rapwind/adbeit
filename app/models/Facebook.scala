@@ -4,6 +4,7 @@ import java.util.{Date}
 
 import play.api.db._
 import play.api.Play.current
+import scala.language.postfixOps
 
 import anorm._
 import anorm.SqlParser._
@@ -21,6 +22,17 @@ object Facebook {
     get[String]("facebook.accesstoken") ~
     get[Option[Date]]("facebook.expiration_date") map {
       case id ~ active ~ user_id ~ accesstoken ~ expiration_date => Facebook(id, active, user_id, accesstoken, expiration_date)
+    }
+  }
+
+  /**
+   * Retrieve a Facebook from id.
+   */
+  def findById(id: Long): Option[Facebook] = {
+    DB.withConnection { implicit connection =>
+      SQL("select * from facebook where id = {id}").on(
+        'id -> id
+      ).as(Facebook.simple.singleOpt)
     }
   }
 

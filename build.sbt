@@ -10,3 +10,7 @@ libraryDependencies ++= Seq(
 )
 
 play.Project.playScalaSettings
+
+scalacOptions ++= Seq(
+  "-feature"
+)

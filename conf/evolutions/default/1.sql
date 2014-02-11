@@ -1,6 +1,20 @@
 # adbeit スキーマ
 
 # --- !Ups
+CREATE TABLE area (
+  id int auto_increment primary key,
+  active int NOT NULL DEFAULT 0,
+  name varchar(255) NOT NULL,
+  create_date timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
+CREATE TABLE category (
+  id int auto_increment primary key,
+  active int NOT NULL DEFAULT 0,
+  name varchar(255) NOT NULL,
+  create_date timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
+);
+
 CREATE TABLE user (
   id bigint auto_increment primary key,
   active int NOT NULL DEFAULT 1,
@@ -8,10 +22,14 @@ CREATE TABLE user (
   email varchar(255) DEFAULT null,
   password varchar(255) DEFAULT null,
   gender int NOT NULL,
+  area_id int DEFAULT NULL,
+  category_id int DEFAULT NULL,
   rank int DEFAULT 0 NOT NULL,
   exp int DEFAULT 0 NOT NULL,
   create_date timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
-  modified_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+  modified_date timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  foreign key(area_id) references area(id) on delete set null,
+  foreign key(category_id) references category(id) on delete set null
 );
 
 CREATE TABLE facebook (
@@ -78,18 +96,22 @@ CREATE TABLE session (
   id varchar(255) primary key,
   user_id bigint unique NOT NULL,
   hostname varchar(255) NOT NULL,
+  permission int NOT NULL DEFAULT 1,
   create_date timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   expiration_date datetime NOT NULL,
   foreign key(user_id) references user(id) on delete cascade
 );
+
 # --- !Downs
 
 DROP TABLE if exists user_advertisement;
-DROP TABLE if exists advertisement;
-DROP TABLE if exists session;
 DROP TABLE if exists likes;
 DROP TABLE if exists twitter;
 DROP TABLE if exists facebook;
+DROP TABLE if exists session;
+DROP TABLE if exists advertisement;
 DROP TABLE if exists company;
 DROP TABLE if exists user;
+DROP TABLE if exists area;
+DROP TABLE if exists category;
 
