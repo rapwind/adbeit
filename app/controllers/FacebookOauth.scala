@@ -41,14 +41,9 @@ object FacebookOauth extends Controller {
 
 
   /**
-  * indexのactionメソッド:
   * Facebook未認証時にリダイレクトするように
   * IsAuthenticatedFacebookはActionに認証をまかせてラップさせている。
   */
-  def index = Action {
-    Ok(views.html.index("Your new application is ready."))
-  }
-
 
   def signin = Action {
     Redirect("https://graph.facebook.com/oauth/authorize?client_id=" + clientId + "&redirect_uri=" + redirectUri)
@@ -66,7 +61,7 @@ object FacebookOauth extends Controller {
       userInfo map { response =>
         Logger.debug("postBody=" + response.json)
         Logger.debug("test future")
-        Redirect(routes.Application.index)
+        Redirect(routes.Projects.index)
       } recover {
         case e: java.net.ConnectException => Ok("失敗")
       }
