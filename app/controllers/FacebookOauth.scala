@@ -50,7 +50,7 @@ object FacebookOauth extends Controller {
     Redirect("https://graph.facebook.com/oauth/authorize?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=email,user_birthday,publish_stream")
   }
 
-  def callback = Action { implicit request =>
+  def callback = Action.async { implicit request =>
     request.queryString.get("code").flatMap(_.headOption).getOrElse("get_error") match {
       case "get_error" => errorCallback
       case _ => successCallback
@@ -59,15 +59,38 @@ object FacebookOauth extends Controller {
 
   def successCallback(implicit request: RequestHeader) = {
     val code = request.queryString.get("code").flatMap(_.headOption).getOrElse("")
-    Ok("success code :" + code )
+
+    requestAccessToken(code) flatMap { response =>
+
+      val accessToken = parseAccessToken(response.body)
+      Logger.debug("postBody=" + accessToken)
+
+      val userInfo = requestUserInfo(accessToken)
+
+      userInfo map { response =>
+        Logger.debug("postBody=" + response.json)
+        Logger.debug("test future")
+        Redirect(routes.Projects.index).withSession("email" -> "guillaume@sample.com")
+      } recover {
+        case e: java.net.ConnectException => Ok("失敗")
+      }
+
+    } recover {
+      case e: java.net.ConnectException => Ok("失敗")
+    }
+
+    //Ok("success code :" + code )
   }
 
-  def errorCallback(implicit request: RequestHeader) = {
+  def errorCallback(implicit request: RequestHeader) = scala.concurrent.Future {
+
     val error = request.queryString.get("error").flatMap(_.headOption).getOrElse("")
     val error_code = request.queryString.get("error_code").flatMap(_.headOption).getOrElse("")
     val error_description = request.queryString.get("error_description").flatMap(_.headOption).getOrElse("")
     val error_reason = request.queryString.get("error_reason").flatMap(_.headOption).getOrElse("")
-    Ok("error:" + error + " error_code:" + error_code + " error_description:" + error_description + " error_reason:" + error_reason)
+    //Ok("error:" + error + " error_code:" + error_code + " error_description:" + error_description + " error_reason:" + error_reason)
+    Redirect(routes.Projects.index)
+
   }
 
 
