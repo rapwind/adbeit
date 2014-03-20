@@ -12,9 +12,7 @@ GET     /logout                     controllers.Application.logout
 
 # Facebook OAuth
 GET     /signin                     controllers.FacebookOauth.signin
-GET     /sigout                     controllers.FacebookOauth.signout
-GET     /callback                   controllers.FacebookOauth.callback(code: String)
-
+GET     /callback                   controllers.FacebookOauth.callback
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
