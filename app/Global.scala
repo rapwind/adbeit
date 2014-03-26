@@ -54,6 +54,7 @@ object InitialData {
 
     }
 
+    /*
     if(Facebook.findAll.isEmpty) {
 
       //fb_id, fb_active, user_id, fb_accesstoken, fb_expiration_date
@@ -80,6 +81,7 @@ object InitialData {
       Logger.debug("create twitter")
 
     }
+    */
 
     if(Company.findAll.isEmpty) {
 

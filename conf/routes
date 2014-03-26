@@ -5,6 +5,11 @@
 # Home page
 GET     /                           controllers.Projects.index
 
+# Sign Up Form
+GET     /signup                     controllers.SignUp.form
+GET     /users/fakeuser             controllers.SignUp.editForm
+POST    /signup                     controllers.SignUp.submit
+
 # Authentication
 GET     /login                      controllers.Application.login
 POST    /login                      controllers.Application.authenticate

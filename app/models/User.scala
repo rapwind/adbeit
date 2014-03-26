@@ -20,6 +20,12 @@ import anorm.SqlParser._
 import utils.CryptUtil
 import java.sql.Timestamp
 
+case class UserForm(
+  username: String,
+  password: String,
+  email: String
+)
+
 case class User(active: Int, name: String, email: String, password: String, gender: Int, area_id: Option[Int], category_id: Option[Int], rank: Int, exp: Int, create_date: Option[Date], modified_date: Option[Date])
 
 object User {

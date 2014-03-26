@@ -16,6 +16,12 @@ object CryptUtil {
     md.digest(s.getBytes).map(_ & 0xFF).map(_.toHexString).mkString
   }
 
+
+  /*
+   *get uuid. random id.
+   */
+  def uuid = java.util.UUID.randomUUID.toString
+
   /**
   * 指定回数ハッシュを行う
   * @param s ハッシュ対象文字

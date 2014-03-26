@@ -7,6 +7,7 @@ import play.api.data.Forms._
 
 import anorm._
 
+import utils._
 import models._
 import views._
 

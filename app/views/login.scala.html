@@ -1,6 +1,12 @@
 @(form: Form[(String,String)])(implicit flash: Flash)
 
 <html>
+
+    <script ><!--
+      if(document.URL.match(/#_=_/))
+        location.href='/';
+    // --></script>
+
     <head>
         <title>Adbeit</title>
     </head>
@@ -39,7 +45,23 @@
         </p>
 
 
-        <a href="/signin">login</a>
+        <h2>Sign in Facebook</h2>
+
+        <p>
+            sign in Facebook.
+        </p>
+
+        <a href="@routes.FacebookOauth.signin">login</a>
+
+        <h2>Sign up form</h2>
+
+        <p>
+            sign up form.
+        </p>
+
+        <p>
+            <a class="btn" href="@routes.SignUp.form">Sign Up »</a>
+        </p>
 
     </body>
 </html>
