@@ -14,12 +14,14 @@ object Application extends Controller {
   // -- Authentication
 
   val loginForm = Form(
+
     tuple(
       "email" -> text,
       "password" -> text
     ) verifying ("Invalid email or password", result => result match {
       case (email, password) => User.authenticate(email, password).isDefined
     })
+
   )
 
   /**

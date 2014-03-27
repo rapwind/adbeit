@@ -68,9 +68,11 @@ object FacebookOauth extends Controller {
       val userInfo = requestUserInfo(accessToken)
 
       userInfo map { response =>
-        Logger.debug("postBody=" + response.json)
-        Logger.debug("test future")
-        Redirect(routes.Projects.index).withSession("email" -> "guillaume@sample.com")
+
+        val json = response.json
+        accessJs(json)
+
+        Redirect(routes.Projects.index).withSession("uuid" -> "guillaume@sample.com")
       } recover {
         case e: java.net.ConnectException => Ok("失敗")
       }
@@ -92,31 +94,6 @@ object FacebookOauth extends Controller {
     Redirect(routes.Projects.index)
 
   }
-
-
-/*
-  def callback(code: String) = Action.async {
-    requestAccessToken(code) flatMap { response =>
-
-      val accessToken = parseAccessToken(response.body)
-      Logger.debug("postBody=" + accessToken)
-
-      val userInfo = requestUserInfo(accessToken)
-
-      userInfo map { response =>
-        Logger.debug("postBody=" + response.json)
-        Logger.debug("test future")
-        Redirect(routes.Projects.index).withSession("email" -> "guillaume@sample.com")
-      } recover {
-        case e: java.net.ConnectException => Ok("失敗")
-      }
-
-    } recover {
-      case e: java.net.ConnectException => Ok("失敗")
-    }
-
-  }
-*/
 
   def requestAccessToken(code: String) = WS.url("https://graph.facebook.com/oauth/access_token").post(Map(
     "client_id" -> Seq(clientId),
@@ -142,10 +119,35 @@ object FacebookOauth extends Controller {
     }
   }
 
+  def accessJs(json: play.api.libs.json.JsValue) = {
+    val pathName = List("id", "name", "email", "gender")
+    var res: List[String] = List()
+
+    for(word <- pathName) {
+      val jsres = (json \ word).validate[String]
+      jsres.fold(
+        errors => Logger.debug("errors :" + errors),
+        s => {
+          res = s :: res
+          Logger.debug("res :" + s)
+        }
+      )
+    }
+    res = res.reverse
+    Logger.debug("res :" + res)
+    createFacebook(res)
+  }
+
+  def createFacebook(res: List[String]) = {
+    Logger.debug("res :" + res.apply(0) + res.apply(1))
+  }
+
 }
 
 
 /*
+cmd + ctl + J : jsonの整形
+
 {
   "id": "100002019632417",
   "name": "Hiroki Tanida",
@@ -211,8 +213,4 @@ object FacebookOauth extends Controller {
   "updated_time": "2013-12-24T07:15:57+0000",
   "username": "HIROKI.TANIDA"
 }
-
-http://localhost:7070/callback?error=access_denied&error_code=200&error_description=Permissions+error&error_reason=user_denied#_=_
-
-GET /callback?code=AQBgFbuZExDx4CjoQUwqHf5AclFa8UWNpZ539_E-eRY8l8m2avtqIzJstZ0RnyqwklAMwg3ick-cKymIVeaP6P03Yk7-8ttFp0fjdXD2K7U1teph9LOC_KliwLYFRYLbqZQ0OfSV6YCOKAq7l5nSe2QdwI0V0OjV_jG5bkmysOirnAc6dJ9dzHHR2DoN8y1BFkf0JtWYPHBhNoyUdRBSPd8CPtOS977vkw9ubLgrEQylnf_u-wgBTo8amHrrA4adG03ECdVBnyU544vVcZ8U7kqCyOVAU4upsfctAM_qWeojemr2DNaS2-l5JFVQFILiewk
 */
