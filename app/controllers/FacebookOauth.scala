@@ -139,6 +139,7 @@ object FacebookOauth extends Controller {
   }
 
   def createFacebook(res: List[String]) = {
+    Logger.debug("today :" + CryptUtil.getCurrentDate)
     Logger.debug("res :" + res.apply(0) + res.apply(1))
   }
 

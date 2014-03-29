@@ -1,6 +1,8 @@
 package utils
 
 import java.security.MessageDigest
+import java.util.Calendar
+import java.text.SimpleDateFormat
 
 import play.api._
 import play.api.mvc._
@@ -33,5 +35,12 @@ object CryptUtil {
       ret = getSha(ret)
     }
     ret
+  }
+
+  def getCurrentDate: String = {
+    val today = Calendar.getInstance().getTime()
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val currentDateAsString = dateFormat.format(today)
+    currentDateAsString
   }
 }
