@@ -16,9 +16,9 @@ case class Area(active: Int, name: String, create_date: Option[Date])
 
 object Area {
   val simple = {
-    get[Int]("area.active") ~
-    get[String]("area.name") ~
-    get[Option[Date]]("area.create_date") map {
+    get[Int]("areas.active") ~
+    get[String]("areas.name") ~
+    get[Option[Date]]("areas.create_date") map {
       case active ~ name ~ create_date => Area(active, name, create_date)
     }
   }
@@ -28,7 +28,7 @@ object Area {
    */
   def findById(id: Int): Option[Area] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from area where id = {id}").on(
+      SQL("select * from areas where id = {id}").on(
         'id -> id
       ).as(Area.simple.singleOpt)
     }
@@ -39,7 +39,7 @@ object Area {
    */
   def findAll: Seq[Area] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from area").as(Area.simple *)
+      SQL("select * from areas").as(Area.simple *)
     }
   }
 
@@ -50,7 +50,7 @@ object Area {
     DB.withConnection { implicit c =>
       SQL(
         """
-          insert into area (
+          insert into areas (
             active, name, create_date
           )
           values (

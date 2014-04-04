@@ -37,6 +37,9 @@ object CryptUtil {
     ret
   }
 
+  /**
+   * 日付、時刻の取得
+   */
   def getCurrentDate: String = {
     val today = Calendar.getInstance().getTime()
     val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")

@@ -30,17 +30,17 @@ case class User(active: Int, name: String, email: String, password: String, gend
 
 object User {
   val simple = {
-    get[Int]("user.active") ~
-    get[String]("user.name") ~
-    get[String]("user.email") ~
-    get[String]("user.password") ~
-    get[Int]("user.gender") ~
-    get[Option[Int]]("user.area_id") ~
-    get[Option[Int]]("user.category_id") ~
-    get[Int]("user.rank") ~
-    get[Int]("user.exp") ~
-    get[Option[Date]]("user.create_date") ~
-    get[Option[Date]]("user.modified_date") map {
+    get[Int]("users.active") ~
+    get[String]("users.name") ~
+    get[String]("users.email") ~
+    get[String]("users.password") ~
+    get[Int]("users.gender") ~
+    get[Option[Int]]("users.area_id") ~
+    get[Option[Int]]("users.category_id") ~
+    get[Int]("users.rank") ~
+    get[Int]("users.exp") ~
+    get[Option[Date]]("users.create_date") ~
+    get[Option[Date]]("users.modified_date") map {
       case active ~ name ~ email ~ password ~ gender ~ area_id ~ category_id ~ rank ~ exp ~ create_date ~ modified_date => User(active, name, email, password, gender, area_id, category_id, rank, exp, create_date, modified_date)
     }
   }
@@ -50,7 +50,7 @@ object User {
    */
   def findById(id: Long): Option[User] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from user where id = {id}").on(
+      SQL("select * from users where id = {id}").on(
         'id -> id
       ).as(User.simple.singleOpt)
     }
@@ -61,7 +61,7 @@ object User {
    */
   def findAll: Seq[User] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from user").as(User.simple *)
+      SQL("select * from users").as(User.simple *)
     }
   }
 
@@ -70,7 +70,7 @@ object User {
    */
   def findByEmail(email: String): Option[User] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from user where email = {email}").on(
+      SQL("select * from users where email = {email}").on(
         'email -> email
       ).as(User.simple.singleOpt)
     }
@@ -83,7 +83,7 @@ object User {
     DB.withConnection { implicit connection =>
       SQL(
         """
-         select * from user where
+         select * from users where
          email = {email} and password = {password}
         """
       ).on(
@@ -101,7 +101,7 @@ object User {
     DB.withConnection { implicit c =>
       SQL(
         """
-          insert into user (
+          insert into users (
             active, name, email, password, gender, area_id, category_id, rank, exp, create_date, modified_date
           )
           values (

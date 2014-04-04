@@ -5,8 +5,6 @@ import play.api.Play
 import play.api.mvc._
 import play.api.libs.json._
 import play.api.Logger
-import play.api.mvc.Action
-import play.api.mvc.Controller
 import play.api.libs.ws.{WS, Response}
 import play.core.parsers._
 
@@ -20,7 +18,10 @@ import play.api.libs.concurrent.Execution.Implicits._
 import ExecutionContext.Implicits.global
 
 
+import anorm._
+
 import utils._
+import models._
 import views._
 
 object FacebookOauth extends Controller {
@@ -45,11 +46,13 @@ object FacebookOauth extends Controller {
   * Facebook未認証時にリダイレクトするように
   * IsAuthenticatedFacebookはActionに認証をまかせてラップさせている。
   */
-
   def signin = Action {
     Redirect("https://graph.facebook.com/oauth/authorize?client_id=" + clientId + "&redirect_uri=" + redirectUri + "&scope=email,user_birthday,publish_stream")
   }
 
+  /**
+   * Facebookからのコールバックを受ける関数
+   */
   def callback = Action.async { implicit request =>
     request.queryString.get("code").flatMap(_.headOption).getOrElse("get_error") match {
       case "get_error" => errorCallback
@@ -57,6 +60,10 @@ object FacebookOauth extends Controller {
     }
   }
 
+  /**
+   * コールバックが成功したとき
+   * @param request
+   */
   def successCallback(implicit request: RequestHeader) = {
     val code = request.queryString.get("code").flatMap(_.headOption).getOrElse("")
 
@@ -70,9 +77,32 @@ object FacebookOauth extends Controller {
       userInfo map { response =>
 
         val json = response.json
-        accessJs(json)
+        /**
+         * 必要なデータの取り出し
+         * 返り値  res : List[String]
+         */
+        val res = accessJs(json)
+        res match {
+          case Some(s) => {
+            Logger.debug("res :" + s)
+            if (createFacebook(s, accessToken)) {
+              Redirect(routes.SignUp.form)
+            }
+            else {
 
-        Redirect(routes.Projects.index).withSession("uuid" -> "guillaume@sample.com")
+              Facebook.findById(s.apply(0).toLong).map { fb =>
+                User.findById(fb.user_id.get).map { user =>
+                  Redirect(routes.Projects.index).withSession("uuid" -> user.email)
+                }.getOrElse(Forbidden)
+              }.getOrElse(Forbidden)
+            }
+          }
+          case None => {
+            Logger.debug("Not exist.")
+            Redirect(routes.Projects.index)
+          }
+        }
+
       } recover {
         case e: java.net.ConnectException => Ok("失敗")
       }
@@ -80,10 +110,62 @@ object FacebookOauth extends Controller {
     } recover {
       case e: java.net.ConnectException => Ok("失敗")
     }
-
-    //Ok("success code :" + code )
   }
 
+  def date(str: String) = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(str)
+
+  /**
+   *jsonのデータをdbに保存する。
+   * @param json
+   */
+  def accessJs(json: play.api.libs.json.JsValue): Option[List[String]] = {
+    val pathName = List("id", "name", "email", "gender")
+    var res: List[String] = List()
+
+    for(word <- pathName) {
+      val jsres = (json \ word).validate[String]
+      jsres.fold(
+        errors => {
+          Logger.debug("errors :" + errors)  // 修正すべき箇所
+          return None
+        },
+        s => {
+          res = s :: res
+          Logger.debug("res :" + s)
+        }
+      )
+    }
+    res = res.reverse
+    Some(res)
+  }
+
+  /**
+   *jsonのデータをdbに保存する。
+   * @param json
+   */
+  def createFacebook(res: List[String], token: String): Boolean = {
+
+    val fb = Facebook(Id(res.apply(0).toLong), 1, Some(res.apply(0).toLong), token, Some(date(CryptUtil.getCurrentDate)) )
+    //Facebook(Id(1), 1, Some(2), "test-token1", Some(date("2014-05-01")))
+
+    Facebook.findById(res.apply(0).toLong).map { user =>
+      //facebookのidがある場合
+      Logger.debug("createSession")
+      Logger.debug("today :" + CryptUtil.getCurrentDate)
+      Logger.debug("id: " + res.apply(0) + " name: " + res.apply(1))
+      false
+    }.getOrElse(
+      //facebookのidがない場合
+      //Facebook.create(fb)
+      true
+    )
+
+  }
+
+  /**
+   * コールバックが失敗したとき
+   * @param request
+   */
   def errorCallback(implicit request: RequestHeader) = scala.concurrent.Future {
 
     val error = request.queryString.get("error").flatMap(_.headOption).getOrElse("")
@@ -95,6 +177,11 @@ object FacebookOauth extends Controller {
 
   }
 
+  /**
+   * コールバックが成功あと、アクセストークンを取得する
+   * Featureを作成する関数
+   * @param code
+   */
   def requestAccessToken(code: String) = WS.url("https://graph.facebook.com/oauth/access_token").post(Map(
     "client_id" -> Seq(clientId),
     "redirect_uri" -> Seq(redirectUri),
@@ -102,10 +189,17 @@ object FacebookOauth extends Controller {
     "code" -> Seq(code)
     ))    // Future[Response]
 
-
+  /**
+   * user info 取得のFeatureを作成する関数
+   * @param accessToken
+   */
   def requestUserInfo(accessToken: String) = WS.url("https://graph.facebook.com/me" + "?access_token=" + accessToken).get()
   // Future[Response]
 
+  /**
+   * AccessTokenのパース
+   * @param response
+   */
   def parseAccessToken(response: String) = {
     // access_token取得用の正規表現
     val regex = new Regex("access_token=(.*)&expires=(.*)")
@@ -117,30 +211,6 @@ object FacebookOauth extends Controller {
         "Access Token を取得できませんでした"
       }
     }
-  }
-
-  def accessJs(json: play.api.libs.json.JsValue) = {
-    val pathName = List("id", "name", "email", "gender")
-    var res: List[String] = List()
-
-    for(word <- pathName) {
-      val jsres = (json \ word).validate[String]
-      jsres.fold(
-        errors => Logger.debug("errors :" + errors),
-        s => {
-          res = s :: res
-          Logger.debug("res :" + s)
-        }
-      )
-    }
-    res = res.reverse
-    Logger.debug("res :" + res)
-    createFacebook(res)
-  }
-
-  def createFacebook(res: List[String]) = {
-    Logger.debug("today :" + CryptUtil.getCurrentDate)
-    Logger.debug("res :" + res.apply(0) + res.apply(1))
   }
 
 }

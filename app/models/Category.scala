@@ -16,9 +16,9 @@ case class Category(active: Int, name: String, create_date: Option[Date])
 
 object Category {
   val simple = {
-    get[Int]("category.active") ~
-    get[String]("category.name") ~
-    get[Option[Date]]("category.create_date") map {
+    get[Int]("categories.active") ~
+    get[String]("categories.name") ~
+    get[Option[Date]]("categories.create_date") map {
       case active ~ name ~ create_date => Category(active, name, create_date)
     }
   }
@@ -28,7 +28,7 @@ object Category {
    */
   def findById(id: Int): Option[Category] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from category where id = {id}").on(
+      SQL("select * from categories where id = {id}").on(
         'id -> id
       ).as(Category.simple.singleOpt)
     }
@@ -39,7 +39,7 @@ object Category {
    */
   def findAll: Seq[Category] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from category").as(Category.simple *)
+      SQL("select * from categories").as(Category.simple *)
     }
   }
 
@@ -50,7 +50,7 @@ object Category {
     DB.withConnection { implicit c =>
       SQL(
         """
-          insert into category (
+          insert into categories (
             active, name, create_date
           )
           values (

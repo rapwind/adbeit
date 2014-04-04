@@ -16,15 +16,15 @@ case class Advertisement(active: Int, company_id: Option[Long], name: String, de
 
 object Advertisement {
   val simple = {
-    get[Int]("advertisement.active") ~
-    get[Option[Long]]("advertisement.company_id") ~
-    get[String]("advertisement.name") ~
-    get[String]("advertisement.description") ~
-    get[String]("advertisement.url") ~
-    get[Int]("advertisement.point") ~
-    get[Option[Date]]("advertisement.create_date") ~
-    get[Option[Date]]("advertisement.modified_date") ~
-    get[Option[Date]]("advertisement.expiration_date") map {
+    get[Int]("advertisements.active") ~
+    get[Option[Long]]("advertisements.company_id") ~
+    get[String]("advertisements.name") ~
+    get[String]("advertisements.description") ~
+    get[String]("advertisements.url") ~
+    get[Int]("advertisements.point") ~
+    get[Option[Date]]("advertisements.create_date") ~
+    get[Option[Date]]("advertisements.modified_date") ~
+    get[Option[Date]]("advertisements.expiration_date") map {
       case active ~ company_id ~ name ~ description ~ url ~ point ~ create_date ~ modified_date ~ expiration_date => Advertisement(active, company_id, name, description, url, point, create_date, modified_date, expiration_date)
     }
   }
@@ -34,7 +34,7 @@ object Advertisement {
    */
   def findById(id: Long): Option[Advertisement] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from advertisement where id = {id}").on(
+      SQL("select * from advertisements where id = {id}").on(
         'id -> id
       ).as(Advertisement.simple.singleOpt)
     }
@@ -45,7 +45,7 @@ object Advertisement {
    */
   def findAll: Seq[Advertisement] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from advertisement").as(Advertisement.simple *)
+      SQL("select * from advertisements").as(Advertisement.simple *)
     }
   }
 
@@ -54,7 +54,7 @@ object Advertisement {
    */
   def addRelation(u_id: Long, ad_id: Long) {
     DB.withConnection { implicit connection =>
-      SQL("insert into user_advertisement values({u_id}, {ad_id})").on(
+      SQL("insert into users_advertisements values({u_id}, {ad_id})").on(
         'u_id -> u_id,
         'ad_id -> ad_id
       ).executeUpdate()
@@ -68,7 +68,7 @@ object Advertisement {
     DB.withConnection { implicit c =>
       SQL(
         """
-          insert into advertisement (
+          insert into advertisements (
             active, company_id, name, description, url, point, create_date, modified_date, expiration_date
           )
           values (

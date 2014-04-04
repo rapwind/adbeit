@@ -16,12 +16,12 @@ case class Company(active: Int, name: String, address: String, url: String, crea
 
 object Company {
   val simple = {
-    get[Int]("company.active") ~
-    get[String]("company.name") ~
-    get[String]("company.address") ~
-    get[String]("company.url") ~
-    get[Option[Date]]("company.create_date") ~
-    get[Option[Date]]("company.modified_date") map {
+    get[Int]("companies.active") ~
+    get[String]("companies.name") ~
+    get[String]("companies.address") ~
+    get[String]("companies.url") ~
+    get[Option[Date]]("companies.create_date") ~
+    get[Option[Date]]("companies.modified_date") map {
       case active ~ name ~ address ~ url ~ create_date ~ modified_date => Company(active, name, address, url, create_date, modified_date)
     }
   }
@@ -31,7 +31,7 @@ object Company {
    */
   def findById(id: Long): Option[Company] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from company where id = {id}").on(
+      SQL("select * from companies where id = {id}").on(
         'id -> id
       ).as(Company.simple.singleOpt)
     }
@@ -42,7 +42,7 @@ object Company {
    */
   def findAll: Seq[Company] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from company").as(Company.simple *)
+      SQL("select * from companies").as(Company.simple *)
     }
   }
 
@@ -51,7 +51,7 @@ object Company {
    */
   def findByEmail(email: String): Option[Company] = {
     DB.withConnection { implicit connection =>
-      SQL("select * from company where address = {email}").on(
+      SQL("select * from companies where address = {email}").on(
         'address -> email
       ).as(Company.simple.singleOpt)
     }
@@ -64,7 +64,7 @@ object Company {
     DB.withConnection { implicit c =>
       SQL(
         """
-          insert into company (
+          insert into companies (
             active, name, address, url, create_date, modified_date
           )
           values (
