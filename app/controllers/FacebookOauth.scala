@@ -66,14 +66,32 @@ object FacebookOauth extends Controller {
    */
   def successCallback(implicit request: RequestHeader) = {
     val code = request.queryString.get("code").flatMap(_.headOption).getOrElse("")
-
     requestAccessToken(code) flatMap { response =>
 
-      val accessToken = parseAccessToken(response.body)
-      Logger.debug("postBody=" + accessToken)
+
+      val accessTokenList = parseAccessToken(response.body) match {
+        case Some(tokenList) => tokenList
+        case None => List("","")
+      }
+      val accessToken = accessTokenList.apply(0)
+      val tokenExpiration = accessTokenList.apply(1)
+      Logger.debug("accessToken=" + accessToken)
+      Logger.debug("tokenExpiration=" + tokenExpiration)
+
+      /*
+      int HH = 359999 / 3600 → 99
+      int mm = 359999 % 3600 / 60 → 59
+      int ss = 359999 % 60 → 59
+      */
+
+      val DD = tokenExpiration.toLong / 86400
+      val HH = tokenExpiration.toLong % 86400 / 3600
+      val mm = tokenExpiration.toLong % 86400 % 3600 / 60
+      val ss = tokenExpiration.toLong % 60
+      Logger.debug("tokenExpiration=" + DD + ":" + HH + ":" + mm + ":" + ss)
+
 
       val userInfo = requestUserInfo(accessToken)
-
       userInfo map { response =>
 
         val json = response.json
@@ -84,18 +102,21 @@ object FacebookOauth extends Controller {
         val res = accessJs(json)
         res match {
           case Some(s) => {
-            Logger.debug("res :" + s)
-            if (createFacebook(s, accessToken)) {
-              Redirect(routes.SignUp.form)
-            }
-            else {
+            Logger.debug("res :" + s) //List(...)
 
-              Facebook.findById(s.apply(0).toLong).map { fb =>
-                User.findById(fb.user_id.get).map { user =>
+            val user_id = checkFacebook(s, accessToken)
+            user_id match {
+              case Some(s) => {
+                User.findById(s.toLong).map { user =>
+                  // session部分を修正する必要あり
                   Redirect(routes.Projects.index).withSession("uuid" -> user.email)
                 }.getOrElse(Forbidden)
-              }.getOrElse(Forbidden)
+              }
+              case None => {
+                Redirect(routes.SignUp.fbForm)
+              }
             }
+
           }
           case None => {
             Logger.debug("Not exist.")
@@ -111,8 +132,6 @@ object FacebookOauth extends Controller {
       case e: java.net.ConnectException => Ok("失敗")
     }
   }
-
-  def date(str: String) = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(str)
 
   /**
    *jsonのデータをdbに保存する。
@@ -141,26 +160,43 @@ object FacebookOauth extends Controller {
 
   /**
    *jsonのデータをdbに保存する。
-   * @param json
+   * @param res
+   * @param token
    */
-  def createFacebook(res: List[String], token: String): Boolean = {
+  def checkFacebook(res: List[String], token: String): Option[Long] = {
 
-    val fb = Facebook(Id(res.apply(0).toLong), 1, Some(res.apply(0).toLong), token, Some(date(CryptUtil.getCurrentDate)) )
-    //Facebook(Id(1), 1, Some(2), "test-token1", Some(date("2014-05-01")))
-
-    Facebook.findById(res.apply(0).toLong).map { user =>
+    Facebook.findById(res.apply(0).toLong).map { fb =>
       //facebookのidがある場合
       Logger.debug("createSession")
       Logger.debug("today :" + CryptUtil.getCurrentDate)
       Logger.debug("id: " + res.apply(0) + " name: " + res.apply(1))
-      false
+      //facebook のaccesstokenを書き換える
+      Facebook.updateToken(res.apply(0).toLong, token)
+
+      fb.user_id match {
+        case Some(s) => Some(s)
+        case None => None
+      }
+
     }.getOrElse(
       //facebookのidがない場合
-      //Facebook.create(fb)
-      true
+      createFacebook(res, token)
     )
-
   }
+
+  /**
+   *jsonのデータをdbに保存する。
+   * @param res
+   * @param token
+   */
+  def createFacebook(res: List[String], token: String): Option[Long] = {
+
+    val fb = Facebook(Id(res.apply(0).toLong), 1, None, token, Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
+    //Facebook(Id(1), 1, Some(2), "test-token1", Some(date("2014-05-01")))
+    Facebook.create(fb)
+    None
+  }
+
 
   /**
    * コールバックが失敗したとき
@@ -200,6 +236,7 @@ object FacebookOauth extends Controller {
    * AccessTokenのパース
    * @param response
    */
+  /*
   def parseAccessToken(response: String) = {
     // access_token取得用の正規表現
     val regex = new Regex("access_token=(.*)&expires=(.*)")
@@ -209,6 +246,29 @@ object FacebookOauth extends Controller {
       }
       case _ => {
         "Access Token を取得できませんでした"
+      }
+    }
+  }
+  */
+
+  /**
+   * AccessTokenのパース
+   * @param response
+   */
+  def parseAccessToken(response: String): Option[List[String]] = {
+    // access_token取得用の正規表現
+    var res: List[String] = List()
+    val regex = new Regex("access_token=(.*)&expires=(.*)")
+    response match {
+      case regex(accessToken, expires) => {
+        res = accessToken :: expires :: res
+        Logger.debug("parse token: " + res)
+        Some(res)
+        //accessToken
+      }
+      case _ => {
+        //"Access Token を取得できませんでした"
+        None
       }
     }
   }

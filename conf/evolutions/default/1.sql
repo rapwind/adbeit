@@ -19,8 +19,8 @@ CREATE TABLE users (
   id bigint auto_increment primary key,
   active int NOT NULL DEFAULT 1,
   name varchar(255) NOT NULL,
-  email varchar(255) DEFAULT null,
-  password varchar(255) DEFAULT null,
+  email varchar(255) DEFAULT NULL,
+  password varchar(255) DEFAULT NULL,
   gender int NOT NULL,
   area_id int DEFAULT NULL,
   category_id int DEFAULT NULL,
@@ -35,7 +35,7 @@ CREATE TABLE users (
 CREATE TABLE facebook (
   id bigint NOT NULL primary key,
   active int NOT NULL DEFAULT 1,
-  user_id bigint unique NOT NULL,
+  user_id bigint unique DEFAULT NULL,
   accesstoken varchar(255) NOT NULL,
   expiration_date datetime NOT NULL,
   foreign key(user_id) references users(id) on delete cascade
@@ -44,7 +44,7 @@ CREATE TABLE facebook (
 CREATE TABLE twitter (
   id bigint primary key,
   active int NOT NULL DEFAULT 1,
-  user_id bigint unique NOT NULL,
+  user_id bigint unique DEFAULT NULL,
   accesstoken varchar(255) NOT NULL,
   expiration_date datetime NOT NULL,
   foreign key(user_id) references users(id) on delete cascade
@@ -65,7 +65,7 @@ CREATE TABLE advertisements (
   active int NOT NULL DEFAULT 1,
   company_id bigint unique NOT NULL,
   name varchar(255) NOT NULL,
-  description varchar(255) DEFAULT null,
+  description varchar(255) DEFAULT NULL,
   url varchar(255) NOT NULL,
   point int NOT NULL,
   create_date timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
@@ -94,12 +94,16 @@ CREATE TABLE likes (
 
 CREATE TABLE sessions (
   id varchar(255) primary key,
-  uu_id bigint unique NOT NULL,
+  u_id bigint unique DEFAULT NULL,
+  fb_id bigint unique DEFAULT NULL,
+  tw_id bigint unique DEFAULT NULL,
   hostname varchar(255) NOT NULL,
   permission int NOT NULL DEFAULT 1,
   create_date timestamp NOT NULL DEFAULT '0000-00-00 00:00:00',
   expiration_date datetime NOT NULL,
-  foreign key(uu_id) references users(id) on delete cascade
+  foreign key(u_id) references users(id) on delete cascade,
+  foreign key(fb_id) references facebook(id) on delete cascade,
+  foreign key(tw_id) references twitter(id) on delete cascade
 );
 
 # --- !Downs

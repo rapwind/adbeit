@@ -46,6 +46,28 @@ object Facebook {
   }
 
   /**
+   * Update a facebook token.
+   */
+  def updateToken(id: Long, token: String) {
+    DB.withConnection { implicit connection =>
+      SQL("update facebook set accesstoken = {accesstoken} where id = {id}").on(
+        'id -> id, 'accesstoken -> token
+      ).executeUpdate()
+    }
+  }
+
+  /**
+   * Update a facebook user_id.
+   */
+  def updateUserId(id: Long, user_id: Long) {
+    DB.withConnection { implicit connection =>
+      SQL("update facebook set user_id = {user_id} where id = {id}").on(
+        'id -> id, 'user_id -> user_id
+      ).executeUpdate()
+    }
+  }
+
+  /**
    * Create a Facebook.
    */
   def create(facebook: Facebook): Facebook = {

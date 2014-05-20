@@ -46,4 +46,6 @@ object CryptUtil {
     val currentDateAsString = dateFormat.format(today)
     currentDateAsString
   }
+
+  def date(str: String) = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(str)
 }

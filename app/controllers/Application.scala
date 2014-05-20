@@ -37,6 +37,7 @@ object Application extends Controller {
   def authenticate = Action { implicit request =>
     loginForm.bindFromRequest.fold(
       formWithErrors => BadRequest(html.login(formWithErrors)),
+      // session部分を修正する必要あり
       user => Redirect(routes.Projects.index).withSession("uuid" -> user._1)
     )
   }

@@ -10,6 +10,10 @@ GET     /signup                     controllers.SignUp.form
 GET     /users/fakeuser             controllers.SignUp.editForm
 POST    /signup                     controllers.SignUp.submit
 
+# Sign Up Form(Facebook)
+GET     /social/signup              controllers.SignUp.fbForm
+POST    /social/signup              controllers.SignUp.fbSubmit
+
 # Authentication
 GET     /login                      controllers.Application.login
 POST    /login                      controllers.Application.authenticate
@@ -18,6 +22,10 @@ GET     /logout                     controllers.Application.logout
 # Facebook OAuth
 GET     /signin                     controllers.FacebookOauth.signin
 GET     /callback                   controllers.FacebookOauth.callback
+
+# Sign Up Form(Twitter)
+GET     /twsignup                   controllers.TwitterOauth.authenticate
+# GET     /twcallback                 controllers.TwitterOauth.callback
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)

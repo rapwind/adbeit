@@ -12,17 +12,19 @@ import anorm.SqlParser._
 import utils.CryptUtil
 import java.sql.Timestamp
 
-case class Session(id: Pk[Long], uu_id: Option[Long], hostname: String, permission:Int, create_date: Option[Date], expiration_date: Option[Date])
+case class Session(id: Pk[Long], u_id: Option[Long], fb_id: Option[Long], tw_id: Option[Long], hostname: String, permission:Int, create_date: Option[Date], expiration_date: Option[Date])
 
 object Session {
   val simple = {
     get[Pk[Long]]("sessions.id") ~
-    get[Option[Long]]("sessions.uu_id") ~
+    get[Option[Long]]("sessions.u_id") ~
+    get[Option[Long]]("sessions.fb_id") ~
+    get[Option[Long]]("sessions.tw_id") ~
     get[String]("sessions.hostname") ~
     get[Int]("sessions.permission") ~
     get[Option[Date]]("sessions.create_date") ~
     get[Option[Date]]("sessions.expiration_date") map {
-      case id ~ uu_id ~ hostname ~ permission ~ create_date ~ expiration_date => Session(id, uu_id, hostname, permission, create_date, expiration_date)
+      case id ~ u_id ~ fb_id ~ tw_id ~ hostname ~ permission ~ create_date ~ expiration_date => Session(id, u_id, fb_id, tw_id, hostname, permission, create_date, expiration_date)
     }
   }
 
@@ -54,15 +56,14 @@ object Session {
       SQL(
         """
           insert into sessions (
-            id, uu_id, hostname, permission, create_date, expiration_date
+            id, hostname, permission, create_date, expiration_date
           )
           values (
-            {id}, {uu_id}, {hostname}, {permission}, {create_date}, {expiration_date}
+            {id}, {hostname}, {permission}, {create_date}, {expiration_date}
           )
         """
       ).on(
         'id -> session.id,
-        'uu_id -> session.uu_id,
         'hostname -> session.hostname,
         'permission -> session.permission,
         'create_date -> session.create_date,
