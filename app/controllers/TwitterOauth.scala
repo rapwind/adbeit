@@ -5,10 +5,12 @@ import play.api.Play.current
 import play.api.libs.oauth.{RequestToken, ServiceInfo, ConsumerKey, OAuth}
 import play.api.mvc.{RequestHeader, Action, Controller}
 import play.api.Play
+import play.api.Logger
 
 object TwitterOauth extends Controller {
 
-  val KEY = ConsumerKey("mBWGBy3F6zrc5RX2zklnajWXz", "v0KXcbn4EnsMjQR7MUTjsO1XddTrQljEDtaDs9BdNKIQ11q2gr")
+  val cfg = Play.application.configuration
+  val KEY = ConsumerKey(cfg.getString("twitter.consumerKey").get, cfg.getString("twitter.consumerSecret").get)
 
   val TWITTER = OAuth(ServiceInfo(
     "https://api.twitter.com/oauth/request_token",
@@ -23,14 +25,18 @@ object TwitterOauth extends Controller {
       TWITTER.retrieveAccessToken(tokenPair, verifier) match {
         case Right(t) => {
           // We received the authorized tokens in the OAuth object - store it before we proceed
+          Logger.debug("authorized token  :" + t.token)
+          Logger.debug("authorized secret :" + t.secret)
           Redirect(routes.Projects.index).withSession("token" -> t.token, "secret" -> t.secret, "uuid" -> "guillaume@sample.com")
         }
         case Left(e) => throw e
       }
     }.getOrElse(
-      TWITTER.retrieveRequestToken("http://localhost:9000/") match {
+      TWITTER.retrieveRequestToken("http://localhost:9000/twsignup") match {
         case Right(t) => {
           // We received the unauthorized tokens in the OAuth object - store it before we proceed
+          Logger.debug("unauthorized token  :" + t.token)
+          Logger.debug("unauthorized secret :" + t.secret)
           Redirect(TWITTER.redirectUrl(t.token)).withSession("token" -> t.token, "secret" -> t.secret)
         }
         case Left(e) => throw e
@@ -45,7 +51,4 @@ object TwitterOauth extends Controller {
       RequestToken(token, secret)
     }
   }
-
-
-
 }
