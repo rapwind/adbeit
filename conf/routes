@@ -25,7 +25,6 @@ GET     /callback                   controllers.FacebookOauth.callback
 
 # Sign Up Form(Twitter)
 GET     /twsignup                   controllers.TwitterOauth.authenticate
-# GET     /twcallback                 controllers.TwitterOauth.callback
 
 # Map static resources from the /public folder to the /assets URL path
 GET     /assets/*file               controllers.Assets.at(path="/public", file)
