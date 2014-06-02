@@ -104,7 +104,8 @@ object FacebookOauth extends Controller {
           case Some(s) => {
             Logger.debug("res :" + s) //List(...)
 
-            val user_id = checkFacebook(s, accessToken)
+            //既にFacebookモデルにuser_idが存在するか確認する。
+            val user_id = checkFacebook(s, accessToken, tokenExpiration)
             user_id match {
               case Some(s) => {
                 User.findById(s.toLong).map { user =>
@@ -163,7 +164,7 @@ object FacebookOauth extends Controller {
    * @param res
    * @param token
    */
-  def checkFacebook(res: List[String], token: String): Option[Long] = {
+  def checkFacebook(res: List[String], token: String, expiration: String): Option[Long] = {
 
     Facebook.findById(res.apply(0).toLong).map { fb =>
       //facebookのidがある場合
@@ -171,7 +172,9 @@ object FacebookOauth extends Controller {
       Logger.debug("today :" + CryptUtil.getCurrentDate)
       Logger.debug("id: " + res.apply(0) + " name: " + res.apply(1))
       //facebook のaccesstokenを書き換える
-      Facebook.updateToken(res.apply(0).toLong, token)
+      val exp = CryptUtil.calcExpiration(expiration)
+      Logger.debug("expiration:" + exp)
+      Facebook.updateToken(res.apply(0).toLong, token, Some(CryptUtil.date(exp)))
 
       fb.user_id match {
         case Some(s) => Some(s)
@@ -180,7 +183,7 @@ object FacebookOauth extends Controller {
 
     }.getOrElse(
       //facebookのidがない場合
-      createFacebook(res, token)
+      createFacebook(res, token, expiration)
     )
   }
 
@@ -189,9 +192,11 @@ object FacebookOauth extends Controller {
    * @param res
    * @param token
    */
-  def createFacebook(res: List[String], token: String): Option[Long] = {
+  def createFacebook(res: List[String], token: String, expiration:String): Option[Long] = {
 
-    val fb = Facebook(Id(res.apply(0).toLong), 1, None, token, Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
+    val exp = CryptUtil.calcExpiration(expiration)
+
+    val fb = Facebook(Id(res.apply(0).toLong), 1, None, token, Some(CryptUtil.date(exp)) )
     //Facebook(Id(1), 1, Some(2), "test-token1", Some(date("2014-05-01")))
     Facebook.create(fb)
     None

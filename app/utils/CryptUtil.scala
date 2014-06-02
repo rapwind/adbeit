@@ -48,4 +48,28 @@ object CryptUtil {
   }
 
   def date(str: String) = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse(str)
+
+  def calcExpiration(exp:String): String = {
+
+    val DD = exp.toLong / 86400
+    val HH = exp.toLong % 86400 / 3600
+    val mm = exp.toLong % 86400 % 3600 / 60
+    val ss = exp.toLong % 60
+    Logger.debug("tokenExpiration=" + DD + ":" + HH + ":" + mm + ":" + ss)
+
+    val cal = Calendar.getInstance()
+    //cal.setTime(myDate);
+    cal.add(Calendar.DAY_OF_YEAR,DD.toInt)
+    cal.add(Calendar.HOUR_OF_DAY,HH.toInt)
+    cal.add(Calendar.MINUTE,mm.toInt)
+    cal.add(Calendar.SECOND,ss.toInt)
+
+    val today = cal.getTime();
+    val dateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss")
+    val expiration = dateFormat.format(today)
+
+    Logger.debug("calc expiration:" + expiration)
+    expiration
+  }
+
 }

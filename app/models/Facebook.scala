@@ -48,10 +48,10 @@ object Facebook {
   /**
    * Update a facebook token.
    */
-  def updateToken(id: Long, token: String) {
+  def updateToken(id: Long, token: String, expiration_date: Option[Date]) {
     DB.withConnection { implicit connection =>
-      SQL("update facebook set accesstoken = {accesstoken} where id = {id}").on(
-        'id -> id, 'accesstoken -> token
+      SQL("update facebook set accesstoken = {accesstoken}, expiration_date = {expiration_date} where id = {id}").on(
+        'id -> id, 'accesstoken -> token, 'expiration_date -> expiration_date
       ).executeUpdate()
     }
   }

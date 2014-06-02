@@ -19,8 +19,8 @@ object Projects extends Controller with Secured {
   /**
    * Display the dashboard.
    */
-  def index = IsAuthenticated { username => _ =>
-    User.findByEmail(username).map { user =>
+  def index = IsAuthenticated { email => _ =>
+    User.findByEmail(email).map { user =>
       Ok(
         html.dashboard(user)
       )
