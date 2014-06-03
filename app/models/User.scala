@@ -26,10 +26,11 @@ case class UserForm(
   email: String
 )
 
-case class User(active: Int, name: String, email: String, password: String, gender: Int, area_id: Option[Int], category_id: Option[Int], rank: Int, exp: Int, create_date: Option[Date], modified_date: Option[Date])
+case class User(id: Pk[Long], active: Int, name: String, email: String, password: String, gender: Int, area_id: Option[Int], category_id: Option[Int], rank: Int, exp: Int, create_date: Option[Date], modified_date: Option[Date])
 
 object User {
   val simple = {
+    get[Pk[Long]]("users.id") ~
     get[Int]("users.active") ~
     get[String]("users.name") ~
     get[String]("users.email") ~
@@ -41,7 +42,7 @@ object User {
     get[Int]("users.exp") ~
     get[Option[Date]]("users.create_date") ~
     get[Option[Date]]("users.modified_date") map {
-      case active ~ name ~ email ~ password ~ gender ~ area_id ~ category_id ~ rank ~ exp ~ create_date ~ modified_date => User(active, name, email, password, gender, area_id, category_id, rank, exp, create_date, modified_date)
+      case id ~ active ~ name ~ email ~ password ~ gender ~ area_id ~ category_id ~ rank ~ exp ~ create_date ~ modified_date => User(id, active, name, email, password, gender, area_id, category_id, rank, exp, create_date, modified_date)
     }
   }
 

@@ -88,13 +88,20 @@ object SignUp extends Controller {
 
         // We got a valid User value, display the summary
         form => {
-          val user = User(1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
+          val user = User(anorm.NotAssigned, 1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
           User.create(user)
-          Logger.debug("user: " + user)
-          //User.create(user)
-          Logger.debug("user: " + form)
-          Redirect(routes.Projects.index).withSession("uuid" -> form.email)
-          //Ok(html.signup.summary(form))
+
+          User.findByEmail(form.email).map { user =>
+            // session部分を修正する必要あり
+            Facebook.updateUserId(fbid.toLong, user.id.get)
+
+            Logger.debug("user: " + user)
+            //User.create(user)
+            Logger.debug("user: " + form)
+            Redirect(routes.Projects.index).withSession("uuid" -> form.email)
+            //Ok(html.signup.summary(form))
+          }.getOrElse(Forbidden)
+
         }
       )
 
@@ -123,7 +130,7 @@ object SignUp extends Controller {
 
       // We got a valid User value, display the summary
       form => {
-        val user = User(1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
+        val user = User(anorm.NotAssigned, 1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
         User.create(user)
         Logger.debug("user: " + user)
         //User.create(user)

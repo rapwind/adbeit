@@ -45,10 +45,10 @@ object InitialData {
       //store_active, user_name, user_email, user_password, user_gender, user_rank, user_exp, user_create_date, user_modified_date
 
       Seq(
-        User(1, "Guillaume Bort", "guillaume@sample.com", "secret", 1, Some(1), Some(1), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01"))),
-        User(1, "Maxime Dantec", "maxime@sample.com", "secret", 1, Some(3), Some(2), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01"))),
-        User(1, "Sadek Drobi", "sadek@sample.com", "secret", 1, Some(2), Some(3), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01"))),
-        User(1, "Erwan Loisant", "erwan@sample.com", "secret", 1, Some(4), Some(4), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01")))
+        User(anorm.NotAssigned, 1, "Guillaume Bort", "guillaume@sample.com", "secret", 1, Some(1), Some(1), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01"))),
+        User(anorm.NotAssigned, 1, "Maxime Dantec", "maxime@sample.com", "secret", 1, Some(3), Some(2), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01"))),
+        User(anorm.NotAssigned, 1, "Sadek Drobi", "sadek@sample.com", "secret", 1, Some(2), Some(3), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01"))),
+        User(anorm.NotAssigned, 1, "Erwan Loisant", "erwan@sample.com", "secret", 1, Some(4), Some(4), 1, 100, Some(date("2014-01-01")), Some(date("2012-01-01")))
       ).foreach(User.create)
       Logger.debug("create user")
 
