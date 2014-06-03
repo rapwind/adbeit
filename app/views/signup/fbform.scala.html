@@ -1,4 +1,4 @@
-@(signupForm: Form[UserForm], facebook: Facebook)
+@(signupForm: Form[UserForm], fbId: String)
 
 @import helper._
 
@@ -11,8 +11,11 @@
 
         <h1>Sign Up</h1>
 
+        <p>
+            @fbId
+        </p>
 
-        @helper.form(action = routes.SignUp.submit) {
+        @helper.form(action = routes.SignUp.fbSubmit) {
 
             <fieldset>
                 <legend>Account information</legend>

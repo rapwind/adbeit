@@ -16,7 +16,8 @@ trait Secured {
   /**
    * Retrieve the connected user uuid.
    */
-  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+  //private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login)
+  private def onUnauthorized(request: RequestHeader) = Results.Redirect(routes.Application.login).withNewSession.flashing("success" -> "You've been logged out")
 
   /**
    * Redirect to login if the user in not authorized.

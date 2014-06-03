@@ -78,19 +78,29 @@ object SignUp extends Controller {
    * Handle form submission.
    */
   def fbSubmit = Action { implicit request =>
-    signupForm.bindFromRequest.fold(
-      // Form has errors, redisplay it
-      formWithErrors => BadRequest(html.signup.form(formWithErrors)),
+    request.session.get("fbid").map { fbid =>
 
-      // We got a valid User value, display the summary
-      form => {
-        val user = User(1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
-        Logger.debug("user: " + user)
-        //User.create(user)
-        Logger.debug("user: " + form)
-        Ok(html.signup.summary(form))
-      }
-    )
+      Logger.debug("fbid: " + fbid)
+
+      signupForm.bindFromRequest.fold(
+        // Form has errors, redisplay it
+        formWithErrors => BadRequest(html.signup.fbform(formWithErrors, fbid)),
+
+        // We got a valid User value, display the summary
+        form => {
+          val user = User(1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
+          User.create(user)
+          Logger.debug("user: " + user)
+          //User.create(user)
+          Logger.debug("user: " + form)
+          Redirect(routes.Projects.index).withSession("uuid" -> form.email)
+          //Ok(html.signup.summary(form))
+        }
+      )
+
+    }.getOrElse {
+      Unauthorized("Oops, you are not connected")
+    }
   }
 
   /**
@@ -114,6 +124,7 @@ object SignUp extends Controller {
       // We got a valid User value, display the summary
       form => {
         val user = User(1, form.username, form.email, form.password, 0, None, None, 0, 0, Some(CryptUtil.date(CryptUtil.getCurrentDate)), Some(CryptUtil.date(CryptUtil.getCurrentDate)) )
+        User.create(user)
         Logger.debug("user: " + user)
         //User.create(user)
         Logger.debug("user: " + form)

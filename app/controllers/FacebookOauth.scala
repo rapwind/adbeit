@@ -102,7 +102,8 @@ object FacebookOauth extends Controller {
         val res = accessJs(json)
         res match {
           case Some(s) => {
-            Logger.debug("res :" + s) //List(...)
+            Logger.debug("res1 :" + s) //List(...)
+            //Logger.debug("res2 :" + s(1)) //List(...)
 
             //既にFacebookモデルにuser_idが存在するか確認する。
             val user_id = checkFacebook(s, accessToken, tokenExpiration)
@@ -114,7 +115,13 @@ object FacebookOauth extends Controller {
                 }.getOrElse(Forbidden)
               }
               case None => {
-                Redirect(routes.SignUp.fbForm)
+
+                val existingUser = UserForm(
+                  s(1), "secret", s(2)
+                )
+                Ok(html.signup.fbform(SignUp.signupForm.fill(existingUser), s(0))).withSession("fbid" -> s(0))
+
+                //Redirect(routes.SignUp.fbForm)
               }
             }
 
